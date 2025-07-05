@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrowthProAI - Local Business Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-shadow {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .star {
+            color: #fbbf24;
+        }
+        
+        .hover-scale {
+            transition: transform 0.2s ease;
+        }
+        
+        .hover-scale:hover {
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <header class="gradient-bg text-white py-6 px-4 shadow-lg">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold text-center">GrowthProAI</h1>
+            <p class="text-center text-blue-100 mt-2">Local Business SEO Dashboard</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto p-4 py-8">
+        <!-- Input Form -->
+        <div class="bg-white rounded-lg card-shadow p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-6 text-gray-800">Enter Business Details</h2>
+            <form id="businessForm" class="space-y-4">
+                <div>
+                    <label for="businessName" class="block text-sm font-medium text-gray-700 mb-1">
+                        Business Name *
+                    </label>
+                    <input 
+                        type="text" 
+                        id="businessName" 
+                        name="businessName" 
+                        required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                        placeholder="e.g., Cake & Co"
+                    >
+                    <div id="nameError" class="text-red-500 text-sm mt-1 hidden">Business name is required</div>
+                </div>
+                
+                <div>
+                    <label for="location" class="block text-sm font-medium text-gray-700 mb-1">
+                        Location *
+                    </label>
+                    <input 
+                        type="text" 
+                        id="location" 
+                        name="location" 
+                        required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                        placeholder="e.g., Mumbai"
+                    >
+                    <div id="locationError" class="text-red-500 text-sm mt-1 hidden">Location is required</div>
+                </div>
+                
+                <button 
+                    type="submit" 
+                    id="submitBtn"
+                    class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center space-x-2"
+                >
+                    <span>Generate Dashboard</span>
+                    <div id="submitSpinner" class="spinner hidden"></div>
+                </button>
+            </form>
+        </div>
+
+        <!-- Business Dashboard Card -->
+        <div id="dashboardCard" class="bg-white rounded-lg card-shadow p-6 hidden">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-semibold text-gray-800">Business Overview</h2>
+                <div class="text-sm text-gray-500">
+                    <span id="lastUpdated"></span>
+                </div>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Business Info -->
+                <div class="space-y-4">
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <h3 id="businessNameDisplay" class="text-lg font-semibold text-gray-800 mb-2"></h3>
+                        <p id="locationDisplay" class="text-gray-600 mb-3"></p>
+                        
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center">
+                                <span id="rating" class="text-2xl font-bold text-yellow-600 mr-1"></span>
+                                <div class="flex" id="stars"></div>
+                            </div>
+                            <div class="text-gray-600">
+                                <span id="reviewCount" class="font-semibold"></span> reviews
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SEO Headline -->
+                <div class="space-y-4">
+                    <div class="p-4 bg-blue-50 rounded-lg">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Latest SEO Headline</h3>
+                        <p id="seoHeadline" class="text-gray-700 font-medium mb-4 leading-relaxed"></p>
+                        
+                        <button 
+                            id="regenerateBtn"
+                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center space-x-2 hover-scale"
+                        >
+                            <span>Regenerate Headline</span>
+                            <div id="regenerateSpinner" class="spinner hidden"></div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Additional Metrics -->
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-green-50 p-4 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-green-600" id="monthlyViews"></div>
+                    <div class="text-sm text-gray-600">Monthly Views</div>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-purple-600" id="searchRank"></div>
+                    <div class="text-sm text-gray-600">Search Ranking</div>
+                </div>
+                <div class="bg-orange-50 p-4 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-orange-600" id="clickThrough"></div>
+                    <div class="text-sm text-gray-600">Click Through Rate</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 px-4 mt-12">
+        <div class="max-w-4xl mx-auto text-center">
+            <p>&copy; 2025 GrowthProAI. Empowering local businesses with AI-driven insights.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Simulated business data and headlines
+        const businessData = {
+            generateRating: () => (Math.random() * 1.5 + 3.5).toFixed(1),
+            generateReviews: () => Math.floor(Math.random() * 200 + 50),
+            generateMonthlyViews: () => (Math.random() * 2000 + 500).toFixed(0),
+            generateSearchRank: () => Math.floor(Math.random() * 10 + 1),
+            generateClickThrough: () => (Math.random() * 5 + 2).toFixed(1) + '%'
+        };
+
+        const seoHeadlines = [
+            "Why {business} is {location}'s Hidden Gem in 2025",
+            "Discover {business}: {location}'s Premier Destination",
+            "{business} Transforms {location}'s Local Scene",
+            "The Ultimate Guide to {business} in {location}",
+            "{business}: Where {location} Meets Excellence",
+            "Local Favorite: {business} Dominates {location}",
+            "{business} Sets New Standards in {location}",
+            "Experience {business}: {location}'s Best Kept Secret",
+            "{business} Leads the Way in {location}",
+            "Top-Rated {business} Revolutionizes {location}",
+            "{business}: Your Go-To Spot in {location}",
+            "Award-Winning {business} Shines in {location}",
+            "{business} Becomes {location}'s Talk of the Town",
+            "Exclusive: {business} Takes {location} by Storm",
+            "{business}: The Heart of {location}'s Community"
+        ];
+
+        let currentBusiness = null;
+
+        // Form validation
+        function validateForm() {
+            const businessName = document.getElementById('businessName').value.trim();
+            const location = document.getElementById('location').value.trim();
+            
+            let isValid = true;
+            
+            // Reset errors
+            document.getElementById('nameError').classList.add('hidden');
+            document.getElementById('locationError').classList.add('hidden');
+            
+            if (!businessName) {
+                document.getElementById('nameError').classList.remove('hidden');
+                isValid = false;
+            }
+            
+            if (!location) {
+                document.getElementById('locationError').classList.remove('hidden');
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+
+        // Generate business data
+        function generateBusinessData(name, location) {
+            return {
+                name: name,
+                location: location,
+                rating: businessData.generateRating(),
+                reviews: businessData.generateReviews(),
+                monthlyViews: businessData.generateMonthlyViews(),
+                searchRank: businessData.generateSearchRank(),
+                clickThrough: businessData.generateClickThrough(),
+                headline: generateHeadline(name, location)
+            };
+        }
+
+        // Generate SEO headline
+        function generateHeadline(business, location) {
+            const template = seoHeadlines[Math.floor(Math.random() * seoHeadlines.length)];
+            return template.replace('{business}', business).replace('{location}', location);
+        }
+
+        // Generate star rating display
+        function generateStars(rating) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+            let starsHTML = '';
+            
+            for (let i = 0; i < fullStars; i++) {
+                starsHTML += '<span class="star">★</span>';
+            }
+            
+            if (hasHalfStar) {
+                starsHTML += '<span class="star">☆</span>';
+            }
+            
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            for (let i = 0; i < emptyStars; i++) {
+                starsHTML += '<span class="text-gray-300">★</span>';
+            }
+            
+            return starsHTML;
+        }
+
+        // Update dashboard display
+        function updateDashboard(data) {
+            document.getElementById('businessNameDisplay').textContent = data.name;
+            document.getElementById('locationDisplay').textContent = data.location;
+            document.getElementById('rating').textContent = data.rating;
+            document.getElementById('stars').innerHTML = generateStars(parseFloat(data.rating));
+            document.getElementById('reviewCount').textContent = data.reviews;
+            document.getElementById('seoHeadline').textContent = data.headline;
+            document.getElementById('monthlyViews').textContent = data.monthlyViews;
+            document.getElementById('searchRank').textContent = '#' + data.searchRank;
+            document.getElementById('clickThrough').textContent = data.clickThrough;
+            document.getElementById('lastUpdated').textContent = 'Updated: ' + new Date().toLocaleString();
+        }
+
+        // Show loading spinner
+        function showLoading(buttonId, spinnerId) {
+            document.getElementById(buttonId).disabled = true;
+            document.getElementById(spinnerId).classList.remove('hidden');
+        }
+
+        // Hide loading spinner
+        function hideLoading(buttonId, spinnerId) {
+            document.getElementById(buttonId).disabled = false;
+            document.getElementById(spinnerId).classList.add('hidden');
+        }
+
+        // Form submission
+        document.getElementById('businessForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm()) return;
+            
+            const businessName = document.getElementById('businessName').value.trim();
+            const location = document.getElementById('location').value.trim();
+            
+            showLoading('submitBtn', 'submitSpinner');
+            
+            // Simulate API call delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            currentBusiness = generateBusinessData(businessName, location);
+            updateDashboard(currentBusiness);
+            
+            // Show dashboard card with animation
+            const dashboardCard = document.getElementById('dashboardCard');
+            dashboardCard.classList.remove('hidden');
+            dashboardCard.classList.add('slide-in');
+            
+            // Scroll to dashboard
+            dashboardCard.scrollIntoView({ behavior: 'smooth' });
+            
+            hideLoading('submitBtn', 'submitSpinner');
+        });
+
+        // Regenerate headline
+        document.getElementById('regenerateBtn').addEventListener('click', async function() {
+            if (!currentBusiness) return;
+            
+            showLoading('regenerateBtn', 'regenerateSpinner');
+            
+            // Simulate API call delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const newHeadline = generateHeadline(currentBusiness.name, currentBusiness.location);
+            currentBusiness.headline = newHeadline;
+            
+            // Update headline with animation
+            const headlineElement = document.getElementById('seoHeadline');
+            headlineElement.classList.add('pulse-animation');
+            headlineElement.textContent = newHeadline;
+            
+            setTimeout(() => {
+                headlineElement.classList.remove('pulse-animation');
+            }, 2000);
+            
+            // Update timestamp
+            document.getElementById('lastUpdated').textContent = 'Updated: ' + new Date().toLocaleString();
+            
+            hideLoading('regenerateBtn', 'regenerateSpinner');
+        });
+
+        // Add some interactive enhancements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add focus animations to input fields
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.classList.add('scale-105');
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.parentElement.classList.remove('scale-105');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
