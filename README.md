@@ -1,1 +1,1 @@
-# Mini-Local-Business-Dashboard
+# Mini Local Business Dashboard
